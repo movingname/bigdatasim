@@ -1,0 +1,7 @@
+{
+	"numRecord"			:	"10000000000",
+	"sizeRecord"		:	"0.0001",
+	"_sizeRecord"		:	"MB",
+	"timePerRecord"		:	"0.001",
+	"_timePerRecord"	:	"ms"
+}
