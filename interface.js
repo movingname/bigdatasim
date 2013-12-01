@@ -152,28 +152,50 @@ var networkGraph = new function(){
 			.attr("width", width)
 			.attr("height", height);
 
+			/*
 			force
 			  .nodes(graph.nodes)
 			  .links(graph.links)
 			  .start();
-
+			*/
+			
+			var node = svg.selectAll(".node")
+			  .data(graph.nodes)
+			  .enter().append("circle")
+			  .attr("class", "node")
+			  .attr("r", 3)
+			  .attr("cx", function(d) {
+				
+								if(d.group == mapperGroup){
+									return Math.random() * 500 + 50;
+								}else if(d.group == masterGroup){
+									return 575;
+								}else if(d.group == reducerGroup){
+									return Math.random() * 150 + 600;
+								}
+								console.log("Unknown node type!");
+								return Math.random() * 700 + 50;
+							})
+			  .attr("cy", function(d) { return Math.random() * 300 + 50;})
+			  .style("fill", function(d) { console.log("group"); return color(d.group); })
+			  //.call(force.drag)
+			  ;
+			
+			/*
 			link = svg.selectAll(".link")
 			  .data(graph.links)
 			  .enter().append("line")
 			  .attr("class", "link")
+			  .attr("x1", function(d) { return d.source.x; })
+			  .attr("y1", function(d) { return d.source.y; })
+			  .attr("x2", function(d) { return d.target.x; })
+			  .attr("y2", function(d) { return d.target.y; })
 			  .style("stroke-width", function(d) { return Math.sqrt(d.value); });
-
-			var node = svg.selectAll(".node")
-			  .data(graph.nodes)
-				.enter().append("circle")
-			  .attr("class", "node")
-			  .attr("r", 3)
-			  .style("fill", function(d) { return color(d.group); })
-			  .call(force.drag);
-
+			*/
 			node.append("title")
 			  .text(function(d) { return d.name; });
 
+			/*
 			force.on("tick", function() {
 				
 				link.attr("x1", function(d) { return d.source.x; })
@@ -184,25 +206,38 @@ var networkGraph = new function(){
 				node.attr("cx", function(d) { return d.x; })
 					.attr("cy", function(d) { return d.y; });
 			});
+			*/
 			
 			//for (var i = 30; i > 0; --i) force.tick();
 			//force.stop();
 	}
 
-	this.addNewLink = function (graph) {
-
+	this.addNewLink = function (linkData) {
+		link = svg.selectAll(".link")
+			  .data(linkData)
+			  .enter().append("line")
+			  .attr("class", "link")
+			  .attr("x1", function(d) { return d.source.x; })
+			  .attr("y1", function(d) { return d.source.y; })
+			  .attr("x2", function(d) { return d.target.x; })
+			  .attr("y2", function(d) { return d.target.y; })
+			  .style("stroke-width", function(d) { return Math.sqrt(d.value); });
 	}
 	
 	this.redrawWithAnimation = function (graph) {
 	
 		if(svg == null)
 			return;
-			
+		/*	
 		link = link.data(force.links());
-		link.enter().insert("line", ".node").attr("class", "link");
-		link.exit().remove();
+		link.enter()
+			.insert("line", ".node")
+			.attr("class", "link");
 		
-		force.start();
+		//What's the purpose of this line?
+		link.exit().remove();
+		*/
+		//force.start();
 		
 	}
 

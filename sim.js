@@ -15,10 +15,7 @@ var timeStep = 100;
 
 var intervalId;
 
-var masterID = 0;
 
-var masterGroup = 0;
-var mapperGroup = 1;
 
 function executeEvent(event){
 
@@ -143,6 +140,13 @@ function createEvents(config, task){
 		connection["nodes"].push({"name":i,"group":mapperGroup});
 		
 	}
+	
+	//We assume only mapper and reducer plus one master exist in the network.
+	for(i = numMapper + 1 ; i <= numMapper + numReducer; i++){
+
+		connection["nodes"].push({"name":i,"group":reducerGroup});
+	
+	}	
 	
 	var simulationFinish = {};
 	simulationFinish.time = lastTimePoint + 1000;	//We add one minute delay
