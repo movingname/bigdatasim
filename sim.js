@@ -1,60 +1,86 @@
 
-var eventQueue = [];
+var activeMappers = [];
+var curActiveMappers = 0;
 
-var heap = new BinaryHeap(function(event){return event.time;});
+var connection = {
+	"nodes": [],
+	"links": []
+};
+
+var eventHeap = new BinaryHeap(function(event){return event.time;});
 
 var curTime = 0;
 
 var timeStep = 100;
 
+var intervalId;
+
+var masterID = 0;
+
+var masterGroup = 0;
+var mapperGroup = 1;
+
 function executeEvent(event){
 
-	console.log(event.type + " at " + event.time);
+	//console.log(event.type + " at " + event.time);
 
+	if(event.type == "MapStart"){
+	
+		curActiveMappers++;
+	
+	}else if(event.type == "MapFinish"){
+	
+		curActiveMappers--;
+	
+	}else if(event.type == "simFinish"){
+
+		clearInterval(intervalId);
+	
+	}else if(event.type == "MapLoadStart"){
+
+		connection["links"].push({"source":masterID,"target":event.machineID,"value":1});
+	
+	}
+	
+	//console.log(curActiveMappers);
 }
 
+
+
 function clockTrigger(){
-	
-	/*
-	var i = 0;
-	for(; i < eventQueue.length; i++){
-	
-		if(eventQueue[i].time <= curTime){
-		
-			executeEvent(eventQueue[i]);
-			
-		}else
-			break;
-	
-	}
-	
-	//Remove executed events
-	if(i > 0){
-		eventQueue.splice(0, i);	//Here, i equals to the number of executed events.
-	}
-	*/
 
-	while(heap.size() > 0 && heap.peek().time <= curTime){
+	while(eventHeap.size() > 0 && eventHeap.peek().time <= curTime){
 
-		executeEvent(heap.pop());
-	
+		executeEvent(eventHeap.pop());
 	}
 	
 	curTime += timeStep;
 	
+	activeMappers.shift(); // remove the first element of the array
+	activeMappers.push(curActiveMappers); // add a new element to the array (we're just taking the number we just shifted off the front and appending to the end)
+
+	lineChart.redrawWithAnimation(activeMappers);
+	
+	networkGraph.redrawWithAnimation(connection);
+	
 }
-setInterval(clockTrigger, 100);
+intervalId = setInterval(clockTrigger, 100);
+
 
 function createEvents(config, task){
 
 	var delay = parseInt(config["commDelay"]);
-	var numMapper = parseInt(config["numMapMachines"]);
+	var numMapper = parseInt(config["numMapper"]);
+	var numReducer = parseInt(config["numReducer"]);
 	var sizeMapPiece = parseInt(config["sizeMapPiece"]);
+	var commCostMin = parseInt(config["commCostMin"]);
+	var commCostMax = parseInt(config["commCostMax"]);
 	
 	var sizeRecord = parseFloat(task["sizeRecord"]);
 	var numRecord = parseInt(task["numRecord"]);
-	var timePerRecord = parseFloat(task["timePerRecord"]);
-	
+	var timePerRecordMapper = parseFloat(task["timePerRecordMapper"]);
+
+	var numMapperPerReducer = Math.round(numMapper / numReducer);
 	var sizeTotalData = numRecord * sizeRecord;
 	var numRecordPerPiece = sizeMapPiece / sizeRecord;
 	var numPiece = sizeTotalData / sizeMapPiece;
@@ -68,35 +94,70 @@ function createEvents(config, task){
 	console.log("numPiecePerMapper: " + numPiecePerMapper);
 	
 	var assignTime = 0;
-	for(i = 0; i < numMapper; i++){
+	var lastTimePoint = 0;
 	
-		var eventMapperStart = {};
-		eventMapperStart.time = assignTime;
-		eventMapperStart.type = "MapperStart";
-		//eventQueue.push(eventMapperStart);
+	connection["nodes"].push({"name":masterID,"group":masterGroup});
 	
-		heap.push(eventMapperStart);
+	for(i = 1; i <= numMapper; i++){
+	
+		var eventMapLoadStart = {};
+		eventMapLoadStart.time = curTime + assignTime;
+		eventMapLoadStart.type = "MapLoadStart";
+		eventMapLoadStart.machineID = i;
+		eventHeap.push(eventMapLoadStart);
 	
 		//There will be a communication delay for assignment.
 		assignTime += delay;
 		
 		//Do we need to have a start up delay? 
 		
-		//We assume that all data is ready at mapper. If we want to change this
-		//assumption, we need to study GFS.
+		var bandWidth = randomFromInterval(commCostMin, commCostMax) * 1000 / 8;
 		
+		var eventMapLoadFinish = {};
+		eventMapLoadFinish.time = Math.round(eventMapLoadStart.time + numPiecePerMapper * sizeMapPiece / bandWidth * 1000);
+		eventMapLoadFinish.type = "MapLoadFinish";
+		eventHeap.push(eventMapLoadFinish);
 		
 		//Now, let's estimate the computation time.
 		
-		var eventMapperFinish = {};
-		eventMapperFinish.time = eventMapperStart.time + numPiecePerMapper * numRecordPerPiece * timePerRecord;
-		eventMapperFinish.type = "MapperFinish";
-		//eventQueue.push(eventMapperFinish);
+		var eventMapperStart = {};
+		eventMapperStart.time = eventMapLoadFinish.time;
+		eventMapperStart.type = "MapStart";
+		eventHeap.push(eventMapperStart);
+	
+
 		
-		heap.push(eventMapperFinish);
+		var eventMapperFinish = {};
+		eventMapperFinish.time = eventMapperStart.time + numPiecePerMapper * numRecordPerPiece * timePerRecordMapper;
+		eventMapperFinish.type = "MapFinish";
+		eventHeap.push(eventMapperFinish);
+		
+		var reducerID = i / numMapperPerReducer;
+		
+		if(eventMapperFinish.time > lastTimePoint){
+		
+			lastTimePoint = eventMapperFinish.time;
+		
+		}
+		
+		connection["nodes"].push({"name":i,"group":mapperGroup});
 		
 	}
 	
+	var simulationFinish = {};
+	simulationFinish.time = lastTimePoint + 1000;	//We add one minute delay
+	simulationFinish.type = "simFinish";
+	eventHeap.push(simulationFinish);
+	
+	for(i = 0; i < 100; i++){
+		activeMappers.push(0);
+		//connection["links"].push({"source":masterID,"target":i,"value":1});
+	
+	}
+	
+	lineChart.displayLineChart(activeMappers, 0, numMapper);
+	
+	networkGraph.displayNetwork(connection);
 	
 }
 
@@ -104,8 +165,6 @@ function runSim(){
 
 	d3.json("config.json", function(errorConfig, config) {
 
-		console.log(config["numMachines"]);
-	
 		d3.json("task.json", function(errorTask, task) {
 		
 			createEvents(config, task);

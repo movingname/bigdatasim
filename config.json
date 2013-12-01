@@ -1,7 +1,7 @@
 {
 	"numMachines"		:	"1800",
-	"numMapMachines"	:	"1700",
-	"numReduceMachines"	:	"100",
+	"numMapper"			:	"1700",
+	"numReducer"		:	"100",
 	"commCostMin"		:	"100",
 	"_commCostMin"		:	"Gbps",
 	"commCostMax"		:	"200",
