@@ -2,6 +2,8 @@
 var activeMappers = [];
 var curActiveMappers = 0;
 
+var mapperToReducer = [];
+
 var connection = {
 	"nodes": [],
 	"links": []
@@ -9,9 +11,7 @@ var connection = {
 
 var eventHeap = new BinaryHeap(function(event){return event.time;});
 
-var curTime = 0;
 
-var timeStep = 100;
 
 var intervalId;
 
@@ -28,6 +28,8 @@ function executeEvent(event){
 	}else if(event.type == "MapFinish"){
 	
 		curActiveMappers--;
+		
+		connection["links"].push({"source":event.machineID,"target":mapperToReducer[event.machineID],"value":1,"time":curTime});
 	
 	}else if(event.type == "simFinish"){
 
@@ -35,7 +37,7 @@ function executeEvent(event){
 	
 	}else if(event.type == "MapLoadStart"){
 
-		connection["links"].push({"source":masterID,"target":event.machineID,"value":1});
+		connection["links"].push({"source":masterID,"target":event.machineID,"value":1,"time":curTime});
 	
 	}
 	
@@ -127,9 +129,14 @@ function createEvents(config, task){
 		var eventMapperFinish = {};
 		eventMapperFinish.time = eventMapperStart.time + numPiecePerMapper * numRecordPerPiece * timePerRecordMapper;
 		eventMapperFinish.type = "MapFinish";
+		eventMapperFinish.machineID = i;
 		eventHeap.push(eventMapperFinish);
 		
-		var reducerID = i / numMapperPerReducer;
+		mapperToReducer[i] = Math.floor(i / numMapperPerReducer + numMapper + 1);
+		
+		if(mapperToReducer[i] > numMapper + numReducer){
+			mapperToReducer[i] --;
+		}
 		
 		if(eventMapperFinish.time > lastTimePoint){
 		
@@ -141,15 +148,17 @@ function createEvents(config, task){
 		
 	}
 	
+	console.log(mapperToReducer);
+	
 	//We assume only mapper and reducer plus one master exist in the network.
 	for(i = numMapper + 1 ; i <= numMapper + numReducer; i++){
 
 		connection["nodes"].push({"name":i,"group":reducerGroup});
-	
+		
 	}	
 	
 	var simulationFinish = {};
-	simulationFinish.time = lastTimePoint + 1000;	//We add one minute delay
+	simulationFinish.time = lastTimePoint + simulationEndDelay;
 	simulationFinish.type = "simFinish";
 	eventHeap.push(simulationFinish);
 	

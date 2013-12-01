@@ -17,7 +17,7 @@ var lineChart = new function(){
 			// assign the X function to plot our line as we wish
 			.x(function(d,i) { 
 				// verbose logging to show what's actually being done
-				//console.log('Plotting X value for data point: ' + d + ' using index: ' + i + ' to be at: ' + x(i) + ' using our xScale.');
+				//=.log('Plotting X value for data point: ' + d + ' using index: ' + i + ' to be at: ' + x(i) + ' using our xScale.');
 				// return the X coordinate where we want to plot this datapoint
 				return x(i); 
 			})
@@ -106,8 +106,6 @@ var networkGraphBundle = new function(){
 		var nodes = cluster.nodes(data["nodes"]),
 			links = data["links"];
 
-		console.log(links);
-		  
 		svg.selectAll(".link")
 		  .data(bundle(links))
 		.enter().append("path")
@@ -152,36 +150,37 @@ var networkGraph = new function(){
 			.attr("width", width)
 			.attr("height", height);
 
-			/*
+			graph.nodes.forEach(function(d){
+				
+				if(d.group == mapperGroup){
+					d.x = Math.random() * 500 + 50;
+				}else if(d.group == masterGroup){
+					d.x = 575;
+				}else if(d.group == reducerGroup){
+					d.x = Math.random() * 150 + 600;
+				}
+				
+				d["fixed"] = true;
+			
+			});
+			
 			force
 			  .nodes(graph.nodes)
 			  .links(graph.links)
 			  .start();
-			*/
 			
 			var node = svg.selectAll(".node")
 			  .data(graph.nodes)
 			  .enter().append("circle")
 			  .attr("class", "node")
 			  .attr("r", 3)
-			  .attr("cx", function(d) {
-				
-								if(d.group == mapperGroup){
-									return Math.random() * 500 + 50;
-								}else if(d.group == masterGroup){
-									return 575;
-								}else if(d.group == reducerGroup){
-									return Math.random() * 150 + 600;
-								}
-								console.log("Unknown node type!");
-								return Math.random() * 700 + 50;
-							})
-			  .attr("cy", function(d) { return Math.random() * 300 + 50;})
-			  .style("fill", function(d) { console.log("group"); return color(d.group); })
+			  .style("fill", function(d) {return color(d.group); })
 			  //.call(force.drag)
 			  ;
 			
-			/*
+			node.append("title")
+			  .text(function(d) { return d.name; })
+			
 			link = svg.selectAll(".link")
 			  .data(graph.links)
 			  .enter().append("line")
@@ -191,11 +190,7 @@ var networkGraph = new function(){
 			  .attr("x2", function(d) { return d.target.x; })
 			  .attr("y2", function(d) { return d.target.y; })
 			  .style("stroke-width", function(d) { return Math.sqrt(d.value); });
-			*/
-			node.append("title")
-			  .text(function(d) { return d.name; });
-
-			/*
+			  
 			force.on("tick", function() {
 				
 				link.attr("x1", function(d) { return d.source.x; })
@@ -206,38 +201,48 @@ var networkGraph = new function(){
 				node.attr("cx", function(d) { return d.x; })
 					.attr("cy", function(d) { return d.y; });
 			});
-			*/
+
 			
 			//for (var i = 30; i > 0; --i) force.tick();
 			//force.stop();
 	}
 
 	this.addNewLink = function (linkData) {
-		link = svg.selectAll(".link")
-			  .data(linkData)
-			  .enter().append("line")
-			  .attr("class", "link")
-			  .attr("x1", function(d) { return d.source.x; })
-			  .attr("y1", function(d) { return d.source.y; })
-			  .attr("x2", function(d) { return d.target.x; })
-			  .attr("y2", function(d) { return d.target.y; })
-			  .style("stroke-width", function(d) { return Math.sqrt(d.value); });
+
 	}
+	
+	var print = 10;
 	
 	this.redrawWithAnimation = function (graph) {
 	
 		if(svg == null)
 			return;
-		/*	
+
+		var links = force.links();
+		
+		for (var i = 0; i < links.length; i++) {
+			if (curTime - links[i].time > edgeDeleteDelay) {
+				//toBeRemoved.push(i);
+				links.splice(i--, 1);
+			}
+		}		
+			
 		link = link.data(force.links());
 		link.enter()
 			.insert("line", ".node")
-			.attr("class", "link");
+			.attr("class", "link")
+			.attr("time", curTime);
+
+
+		
+		
+						
+		console.log(curTime + " " + links.length);
 		
 		//What's the purpose of this line?
 		link.exit().remove();
-		*/
-		//force.start();
+
+		force.start();
 		
 	}
 
