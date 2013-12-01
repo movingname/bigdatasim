@@ -3,6 +3,6 @@
 	"sizeRecord"					:	"0.0001",
 	"_sizeRecord"					:	"MB",
 	"sizeResultRelativeToRecord"	:	"0.01",
-	"timePerRecordMapper"			:	"0.001",
+	"timePerRecordMapper"			:	"0.0005",
 	"_timePerRecordMapper"			:	"ms"
 }

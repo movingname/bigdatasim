@@ -97,6 +97,9 @@ function createEvents(config, task){
 	
 	connection["nodes"].push({"name":masterID,"group":masterGroup});
 	
+	var assignCount = 0;
+	var commLimit = 100;
+	
 	for(i = 1; i <= numMapper; i++){
 	
 		var eventMapLoadStart = {};
@@ -106,7 +109,12 @@ function createEvents(config, task){
 		eventHeap.push(eventMapLoadStart);
 	
 		//There will be a communication delay for assignment.
-		assignTime += delay;
+
+		assignCount++;
+		if(assignCount > commLimit){
+			assignCount = 0;
+			assignTime += delay;
+		}
 		
 		//Do we need to have a start up delay? 
 		
@@ -123,11 +131,9 @@ function createEvents(config, task){
 		eventMapperStart.time = eventMapLoadFinish.time;
 		eventMapperStart.type = "MapStart";
 		eventHeap.push(eventMapperStart);
-	
 
-		
 		var eventMapperFinish = {};
-		eventMapperFinish.time = eventMapperStart.time + numPiecePerMapper * numRecordPerPiece * timePerRecordMapper;
+		eventMapperFinish.time = Math.round(eventMapperStart.time + numPiecePerMapper * numRecordPerPiece * timePerRecordMapper * (Math.random() + 0.5));
 		eventMapperFinish.type = "MapFinish";
 		eventMapperFinish.machineID = i;
 		eventHeap.push(eventMapperFinish);

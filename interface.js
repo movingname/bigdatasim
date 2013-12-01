@@ -232,13 +232,7 @@ var networkGraph = new function(){
 			.insert("line", ".node")
 			.attr("class", "link")
 			.attr("time", curTime);
-
-
-		
-		
-						
-		console.log(curTime + " " + links.length);
-		
+			
 		//What's the purpose of this line?
 		link.exit().remove();
 
