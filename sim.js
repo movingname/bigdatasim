@@ -63,7 +63,7 @@ function clockTrigger(){
 	networkGraph.redrawWithAnimation(connection);
 	
 }
-intervalId = setInterval(clockTrigger, 100);
+
 
 
 function createEvents(config, task){
@@ -182,20 +182,77 @@ function createEvents(config, task){
 
 function runSim(){
 
-	d3.json("config.json", function(errorConfig, config) {
+	if(state == "start"){
 
-		d3.json("task.json", function(errorTask, task) {
-		
-			createEvents(config, task);
+		d3.json("config.json", function(errorConfig, config) {
 
-			clockTrigger();
-		
+			d3.json("task.json", function(errorTask, task) {
+			
+				createEvents(config, task);
+
+				intervalId = setInterval(clockTrigger, 100);
+				
+				//clockTrigger();
+				
+				state = "run";
+				
+				document.getElementById('runButton').innerHTML = "Pause";
+			
+			});
+
 		});
+	
+	}else if(state == "run"){
+		clearInterval(intervalId);
 
-	});
+		state = "pause";
+		
+		document.getElementById('runButton').innerHTML = "Resume";
+		
+	}else if(state =="pause"){
+	
+		intervalId = setInterval(clockTrigger, 100);
+	
+		state = "run";
+	
+		document.getElementById('runButton').innerHTML = "Pause";
+	
+	}
 	
 }
 
+function resetSim(){
+
+	clearInterval(intervalId);
+	
+	activeMappers = [];
+	curActiveMappers = 0;
+
+	mapperToReducer = [];
+
+	connection = {
+		"nodes": [],
+		"links": []
+	};
+
+	var curTime = 0;
+	
+	var graphs = document.getElementsByClassName('aGraph');
+	
+	console.log(graphs);
+	
+	for (i = 0; i < graphs.length; i++) {
+	
+		graphs[i].innerHTML = "";
+	
+		//graphs[i].removeChild(graphs[i]);
+    }
+	
+	document.getElementById('runButton').innerHTML = "Run";
+	
+	state = "start";
+	
+}
 
 //All TODOs
 	//TODO1: [5] Some pieces could be missing due to integer calculation. It might

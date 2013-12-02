@@ -11,3 +11,5 @@ var timeStep = 100;
 var simulationEndDelay = 5000;
 
 var edgeDeleteDelay = 1000;
+
+var state = "start";

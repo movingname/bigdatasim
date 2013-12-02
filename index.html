@@ -35,15 +35,35 @@
 	
 </head>
 <body>
-	<p>
-	<b>Active Mapper Counts</b>
-	<div id="lineChart" class="aGraph" style="width:400px; height:150px;"></div>
-	</p>
-	<p>
-	<b>Connection Graph</b>
-	<div id="networkGraph" class="aGraph" style="width:800px; height:400px;"></div>
-	</p>
-	<button type="button" class="btn btn-default" onclick="runSim()">Run</button>
+	<div class="row">
+		<div class="col-md-2">
+			<br><br>
+			<p>
+			<b>Welcome!</b><br>
+			This is a MapReduce simulator prototype. Please click Run to start a simulation.
+			For more information. please take a look at these files:
+			<ul>
+				<li><a href="/task.json"  target="_blank">Task description file</a></li>
+				<li><a href="/config.json"  target="_blank">Configuration file</a></li>
+			</ul>
+			</p>
+			<button id = "runButton" type="button" class="btn btn-default" onclick="runSim()">Run</button>
+			<button id = "resetButton" type="button" class="btn btn-default" onclick="resetSim()">Reset</button>
+		</div>
+		<div class="col-md-5">
+			<br><br>
+			<p>
+			<b>Active Mapper Counts</b>
+			<div id="lineChart" class="aGraph" style="width:400px; height:150px;"></div>
+			</p>
+			<p>
+			<b>Connection Graph</b>
+			<div id="networkGraph" class="aGraph" style="width:800px; height:400px;"></div>
+			</p>
+			
+		</div>
+	</div>
+	
 
 </body>
 </html>
