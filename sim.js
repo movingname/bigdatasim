@@ -100,7 +100,7 @@ function createEvents(config, task){
 	connection["nodes"].push({"name":masterID,"group":masterGroup});
 	
 	var assignCount = 0;
-	var commLimit = 100;
+	var commLimit = 20;
 	
 	for(i = 1; i <= numMapper; i++){
 	
