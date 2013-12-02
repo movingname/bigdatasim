@@ -34,6 +34,8 @@ function executeEvent(event){
 	}else if(event.type == "simFinish"){
 
 		clearInterval(intervalId);
+		
+		state = "finish";
 	
 	}else if(event.type == "MapLoadStart"){
 
